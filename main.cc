@@ -494,8 +494,108 @@ void MostrarMenu() {
   std::cout << BLUE << "Ingrese su opcion: " << RESET;
 }
 
+// Funcion para usar pausa en los casos del menu
+void Pause() {
+  std::cout << "\n";
+  system("pause");
+}
+
 //Funcion Principal Main
 int main(int argc, char *argv[]){
 
+    FamilyTree my_tree; // Arbol vacio
+  std::ostringstream tree_impresion;
+  int option = 0;
+  std::string name, relationship;
+
+  do {
+    MostrarMenu();
+    std::cin >> option;
+
+    if (std::cin.fail()) { // Si ingresa una letra o un valor diferente
+                           // entre 1-7, este lo ignora para evitar bucles
+      std::cin.clear();
+      std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+      std::cout << RED << "Tipo de dato no admitido. " << RESET << std::endl;
+      Pause();
+      continue;
+    }
+
+    switch (option) {
+    case 1:
+      std::cout << "Ingrese el nombre del nuevo miembro: " << std::endl;
+      std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+      std::getline(std::cin, name);
+      my_tree.setRoot(my_tree.InsertMember(my_tree.getRoot(), name));
+      break;
+    case 2:
+      std::cout << "Ingrese el nombre del miembro a eliminar: " << std::endl;
+      std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+      std::getline(std::cin, name);
+      my_tree.setRoot(my_tree.DeleteMember(my_tree.getRoot(), name));
+      Pause();
+      break;
+    case 3:
+      std::cout << "Ingrese el miembro que desea buscar: " << std::endl;
+      std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+      std::getline(std::cin, name);
+      if (my_tree.SearchMember(my_tree.getRoot(), name)) {
+        std::cout << GREEN << "Miembro encontrado! " << RESET << std::endl;
+      } else {
+        std::cout << RED << "No se encontro el miembro." << RESET << std::endl;
+      }
+      Pause();
+      break;
+    case 4:
+      std::cout << CYAN
+                << "\n******************* ARBOL FAMILIAR "
+                   "*******************"
+                << RESET << std::endl;
+      std::cout << my_tree.PrintTree(my_tree.getRoot());
+      std::cout << std::endl;
+      Pause();
+      break;
+    case 5:
+      my_tree.ShowMemberRelationship(my_tree.getRoot());
+      std::cout << std::endl;
+      Pause();
+      break;
+    case 6: {
+      std::ofstream tree_file("arbol_familiar.txt", std::ios::trunc);
+      std::ofstream preorder_file("preorden_familiar.txt", std::ios::trunc);
+      my_tree.ExportTree(my_tree.getRoot(), tree_file, preorder_file);
+      std::cout << GREEN
+                << "Arbol exportado exitosamente a 'arbol_familiar.txt' "
+                << RESET << std::endl;
+      break;
+    }
+    case 7: {
+      std::ifstream intput_file("preorden_familiar.txt");
+      if (!intput_file) {
+        std::cerr << RED
+                  << "Error. No se pudo abrir el archivo para importarlo. "
+                  << RESET << std::endl;
+        break;
+      } else {
+        my_tree.FreeMemory(my_tree.getRoot());
+      }
+
+      my_tree.setRoot(my_tree.ImportTree(intput_file));
+      std::cout << GREEN << "Arbol importado exitosamente!" << RESET
+                << std::endl;
+    } break;
+    case 8:
+      std::cout << YELLOW << "Saliendo del programa..." << RESET << std::endl;
+      break;
+    default:
+      std::cout << RED << "Entrada invalida. Debe ser entre (1-8)." << RESET
+                << std::endl;
+      break;
+    }
+
+    std::cout << std::endl;
+  } while (option != 8);
+
   return 0;
+  
 }
