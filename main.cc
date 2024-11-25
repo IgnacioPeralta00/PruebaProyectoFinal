@@ -75,6 +75,9 @@ public:
   std::string GenerateTree(const Member *, int, std::ostringstream &);
   std::string PrintTree(const Member *);
   void ShowMemberRelationship(const Member *);
+  std::string GeneratePreorder(const Member *, std::ostringstream &);
+  std::string PrintPreoder(const Member *);
+  void ExportTree(Member *, std::ofstream &, std::ofstream &);
   void FreeMemory(Member *);
   ~FamilyTree(); // Destructor
 };
@@ -367,4 +370,45 @@ void FamilyTree::ShowMemberRelationship(const Member *tree) {
   // relaciones de la familia
   ShowMemberRelationship(tree->getMother());
   ShowMemberRelationship(tree->getFather());
+}
+
+// Funcion que genera la jerarquia preorden del arbol como una cadena string,
+// tambien usa std::ostringstream
+std::string FamilyTree::GeneratePreorder(const Member *tree,
+                                         std::ostringstream &preorder_string) {
+  if (tree != nullptr) {
+    preorder_string << tree->getName() << std::endl;
+    GeneratePreorder(tree->getMother(), preorder_string);
+    GeneratePreorder(tree->getFather(), preorder_string);
+  } else {
+    preorder_string << "nullptr" << std::endl;
+  }
+  return preorder_string.str();
+}
+
+// Funcion que retorna la jerarquia preornden, se imprime dentro de un .txt (ver
+// funcion exportar/importar)
+std::string FamilyTree::PrintPreoder(const Member *tree) {
+  std::ostringstream preorder_string, mother_tree, father_tree;
+  preorder_string << tree->getName() << std::endl;
+  preorder_string << GeneratePreorder(tree->getMother(), mother_tree);
+  preorder_string << GeneratePreorder(tree->getFather(), father_tree);
+  return preorder_string.str();
+}
+
+// Funcion para exportar el arbol hacia un archivo .txt
+void FamilyTree::ExportTree(Member *tree, std::ofstream &file,
+                            std::ofstream &file_aux) {
+  if (tree ==
+      nullptr) { // Si el arbol esta vacio mostramos nullptr porque el nodo
+                 // esta vacio archivo_entrada << std::string(nivel * 2, ' ')
+                 // << "Nodo vacio. " << std::endl;
+    return;
+  }
+  if (!file) {
+    std::cerr << "Error al abrir el archivo para exportar." << std::endl;
+  }
+  file_aux << PrintPreoder(
+      tree);               // Pasamos la jerarquia (preorden) a un archivo .txt
+  file << PrintTree(tree); // Pasamos la impresion del arbol a un archivo .txt
 }
