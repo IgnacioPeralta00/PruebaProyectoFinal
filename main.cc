@@ -1,5 +1,22 @@
 // Declaracion de librerias
+#include <fstream>
 #include <iostream>
+#include <limits>
+#include <sstream>
+
+#define COUNT                                                                  \
+  10 // Variable definida en el preporcesador para la funion MostrarArbol
+
+// codigos ANSI para cambiar los colores de la terminal
+//  Funciona en la mayoria de terminales modernas de Windows y UNIX
+#define RESET "\033[0m"
+#define BOLD "\033[1m"
+#define UNDERLINE "\033[4m"
+#define BLUE "\033[34m"
+#define CYAN "\033[36m"
+#define GREEN "\033[32m"
+#define YELLOW "\033[33m"
+#define RED "\033[31m"
 
 // Clase Miembro: Cada objeto representa un miembro familiar unico
 class Member {
@@ -55,6 +72,9 @@ public:
   Member *InsertParents(Member *, std::string, std::string);
   Member *DeleteMember(Member *, std::string);
   bool SearchMember(Member *, std::string);
+  std::string GenerateTree(const Member *, int, std::ostringstream &);
+  std::string PrintTree(const Member *);
+  void ShowMemberRelationship(const Member *);
   void FreeMemory(Member *);
   ~FamilyTree(); // Destructor
 };
@@ -170,6 +190,7 @@ Member *FamilyTree::InsertParents(Member *tree, std::string name_son,
   }
   return tree; // Retornarmos en arbol sin modificar
 }
+
 // Funcion para eliminar un miembro del arbol
 Member *FamilyTree::DeleteMember(Member *tree, std::string name) {
   static bool is_root = true;
@@ -280,4 +301,70 @@ bool FamilyTree::SearchMember(Member *tree, std::string name) {
   }
 }
 
+// Funcion que genera el arbol familiar como una cadena string, usando
+// std::ostringstream para el flujo de cadenas
+std::string FamilyTree::GenerateTree(const Member *tree, int space,
+                                     std::ostringstream &tree_as_string) {
+  if (this->root == nullptr) {
+    tree_as_string << "El arbol familiar esta vacio. No hay nada que mostrar."
+                   << std::endl;
+    return tree_as_string.str();
+  }
 
+  if (tree == nullptr) // Caso base: no hay mas nodos
+    return tree_as_string.str();
+
+  // Aumenta la distancia entre los niveles
+  space += COUNT;
+
+  // Recorremos los nodos mama para mostrarlos
+  GenerateTree(tree->getMother(), space, tree_as_string);
+
+  // Imprime el nodo actual despues del espaciado
+  // count
+  tree_as_string << std::endl;
+  for (int i = COUNT; i < space; i++)
+    tree_as_string << " ";
+  tree_as_string << tree->getName() << std::endl;
+
+  // Recorremos los nodos papa para mostrarlos
+  GenerateTree(tree->getFather(), space, tree_as_string);
+  return tree_as_string.str();
+}
+
+// Funcion que retorna el arbol como una string generado por GenerateTree()
+std::string FamilyTree::PrintTree(const Member *tree) {
+  std::ostringstream tree_as_string;
+  std::ostringstream tree_aux;
+  // Pasar tamaño del espaciado
+  tree_as_string << GenerateTree(tree, 0, tree_aux);
+  return tree_as_string.str();
+}
+
+// Funcion para mostrar las relaciones entre los miembros del arbol
+void FamilyTree::ShowMemberRelationship(const Member *tree) {
+  if (this->root == nullptr) { // Verificar si el árbol global está vacío
+    std::cout
+        << "\nEl arbol familiar esta vacio. No hay relaciones que mostrar."
+        << std::endl;
+    return;
+  }
+  if (tree == nullptr) { // Caso recursivo: no hay mas nodos
+    return;
+  }
+
+  // Mostramos la relacion por cada nodo empezando por el actual
+  std::cout << "Mi nombre es " << tree->getName();
+  if (tree->getMother() != nullptr) {
+    std::cout << ", mi madre es " << tree->getMother()->getName();
+  }
+  if (tree->getFather() != nullptr) {
+    std::cout << ", mi padre es " << tree->getFather()->getName();
+  }
+  std::cout << "." << std::endl;
+
+  // Recorremos el arbol de manera recursiva para establecer todas las
+  // relaciones de la familia
+  ShowMemberRelationship(tree->getMother());
+  ShowMemberRelationship(tree->getFather());
+}
