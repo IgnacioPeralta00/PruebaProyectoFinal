@@ -78,9 +78,7 @@ public:
   std::string GeneratePreorder(const Member *, std::ostringstream &);
   std::string PrintPreoder(const Member *);
   void ExportTree(Member *, std::ofstream &, std::ofstream &);
-  void ExportTree(Member *, std::ofstream &, std::ofstream &);
   Member *ImportTree(std::ifstream &);
-  void FreeMemory(Member *);
   void FreeMemory(Member *);
   ~FamilyTree(); // Destructor
 };
@@ -451,7 +449,7 @@ void FamilyTree::FreeMemory(Member *tree) {
 FamilyTree::~FamilyTree() { FreeMemory(this->root); }
 
 // Funcion para mostrar el menu con mejor estetica
-void MostrarMenu() {
+void PrintMenu() {
 
   // Titulo con formato
   std::cout << "\n";
@@ -500,16 +498,15 @@ void Pause() {
   system("pause");
 }
 
-//Funcion Principal Main
-int main(int argc, char *argv[]){
-
-    FamilyTree my_tree; // Arbol vacio
+// Funcion principal Main
+int main(int argc, char const *argv[]) {
+  FamilyTree my_tree; // Arbol vacio
   std::ostringstream tree_impresion;
   int option = 0;
   std::string name, relationship;
 
   do {
-    MostrarMenu();
+    PrintMenu();
     std::cin >> option;
 
     if (std::cin.fail()) { // Si ingresa una letra o un valor diferente
@@ -597,5 +594,4 @@ int main(int argc, char *argv[]){
   } while (option != 8);
 
   return 0;
-  
 }
