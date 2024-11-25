@@ -53,7 +53,9 @@ public:
   Member *CreateMember(std::string);
   Member *InsertMember(Member *, std::string);
   Member *InsertParents(Member *, std::string, std::string);
+  Member *DeleteMember(Member *, std::string);
   bool SearchMember(Member *, std::string);
+  void FreeMemory(Member *);
   ~FamilyTree(); // Destructor
 };
 
@@ -168,4 +170,114 @@ Member *FamilyTree::InsertParents(Member *tree, std::string name_son,
   }
   return tree; // Retornarmos en arbol sin modificar
 }
+// Funcion para eliminar un miembro del arbol
+Member *FamilyTree::DeleteMember(Member *tree, std::string name) {
+  static bool is_root = true;
+  if (tree == nullptr && is_root) { // Si el arbol esta vacio no eliminamos nada
+    std::cout << "El arbol esta vacio. " << std::endl;
+    return nullptr;
+  }
+
+  if (!SearchMember(tree, name)) { // Si el miembro que se busca no existe
+                                   // retornar el arbol sin modificar
+    static bool member_found = false;
+    if (!member_found && is_root) {
+      std::cout
+          << "No se encontro el miembro | " << name
+          << " | en el arbol familiar. "
+          << std::endl; // Solo desplegamos este mensaje en la llamada original
+      member_found = true;
+    }
+    member_found = false; // Reiniciamos la bandera para futuras eliminaciones
+    return tree;
+  }
+  is_root = false; // Indicamos que ya no estamos en la raiz
+
+  if (tree->getName() == name) {
+    std::cout << "Eliminando la raiz del arbol familiar " << name << "... "
+              << std::endl;
+    if (tree->getMother() != nullptr || tree->getFather() != nullptr) {
+      std::cout << "Eliminando arbol completo... " << std::endl;
+      FreeMemory(tree->getMother());
+      FreeMemory(tree->getFather());
+      delete tree;
+      tree = nullptr;
+    } else {
+      delete tree;
+      tree = nullptr;
+    }
+    is_root = true; // Reiniciamos la bandera para futuras eliminaciones
+    return nullptr;
+  }
+
+  if (tree->getMother() != nullptr &&
+      tree->getMother()->getName() ==
+          name) { // Si el nodo a eliminar es un nodo mama
+    Member *erase_mother = tree->getMother();
+    std::cout << "Eliminando miembro: " << name << "... " << std::endl;
+    if (erase_mother->getMother() !=
+        nullptr) { // Si el nodo mama a eliminar tiene un nodo mama reasignamos
+                   // ese nodo
+      tree->setMother(
+          erase_mother->getMother()); // Saltamos madre e eliminar, la nueva
+                                      // "madre" sera la abuela
+      FreeMemory(erase_mother->getFather());
+      delete erase_mother;
+    } else { // Si el nodo mama a eliminar no tiene un nodo mama, el nuevo nodo
+             // mama apuntara a nulltpr
+      tree->setMother(nullptr);
+      FreeMemory(erase_mother->getFather()); // Liberamos en caso de no tener
+                                             // mama pero si tener papa
+      delete erase_mother;
+    }
+    std::cout << "Miembro eliminado exitosamente. " << std::endl;
+    return tree;
+  }
+
+  if (tree->getFather() != nullptr &&
+      tree->getFather()->getName() ==
+          name) { // Si el nodo a eliminar es un nodo papa
+    Member *erase_father = tree->getFather();
+    std::cout << "Eliminando miembro: " << name << "... " << std::endl;
+    if (erase_father->getFather() !=
+        nullptr) { // Si el nodo papa a eliminar tiene un nodo papa reasignamos
+                   // ese nodo
+      tree->setFather(
+          erase_father->getFather()); // Saltamos padre e eliminar, el nuevo
+                                      // "padre" sera el abuelo
+      FreeMemory(erase_father->getMother());
+      delete erase_father;
+    } else { // Si el nodo papa a eliminar no tiene un nodo papa, el nuevo nodo
+             // papa apuntara a nulltpr
+      tree->setFather(nullptr);
+      FreeMemory(erase_father->getMother()); // Liberamos en caso de no tener
+                                             // papa pero si tener mama
+      delete erase_father;
+    }
+    std::cout << "Miembro eliminado exitosamente. " << std::endl;
+    return tree;
+  }
+
+  // Buscamos de manera recursiva en los nodos mama/papa el nodo a eliminar
+  tree->setMother(DeleteMember(tree->getMother(), name));
+  tree->setFather(DeleteMember(tree->getFather(), name));
+
+  is_root = true; // Reiniciamos la bandera para futuras eliminaciones
+  return tree;    // Retornar el arbol sin modificar
+}
+
+// Funcion para encontrar un miembro dentro del arbol
+bool FamilyTree::SearchMember(Member *tree, std::string name) {
+  if (tree == nullptr)
+    return false; // Si el arbol esta vacio retorna false
+
+  if (tree->getName() == name) { // Si el miembro que buscamos esta en el
+                                 // nodo actual retorna true
+    return true;
+  } else { // Buscamos recursivamente entre todos los nodos del arbol
+    return SearchMember(tree->getMother(), name) ||
+           SearchMember(tree->getFather(), name);
+  }
+}
+
 
