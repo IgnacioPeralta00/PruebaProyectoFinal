@@ -1,0 +1,7 @@
+# Ignorar configuraciones de Visual Studio Code
+.vscode/
+
+# Ignorar archivos específicos
+.vscode/c_cpp_properties.json
+.vscode/launch.json
+.vscode/settings.json

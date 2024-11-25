@@ -78,6 +78,9 @@ public:
   std::string GeneratePreorder(const Member *, std::ostringstream &);
   std::string PrintPreoder(const Member *);
   void ExportTree(Member *, std::ofstream &, std::ofstream &);
+  void ExportTree(Member *, std::ofstream &, std::ofstream &);
+  Member *ImportTree(std::ifstream &);
+  void FreeMemory(Member *);
   void FreeMemory(Member *);
   ~FamilyTree(); // Destructor
 };
@@ -411,4 +414,88 @@ void FamilyTree::ExportTree(Member *tree, std::ofstream &file,
   file_aux << PrintPreoder(
       tree);               // Pasamos la jerarquia (preorden) a un archivo .txt
   file << PrintTree(tree); // Pasamos la impresion del arbol a un archivo .txt
+}
+
+// Funcion para importar y reconstruir un arbol desde un archivo .txt (ve)
+Member *FamilyTree::ImportTree(std::ifstream &input_file) {
+  std::string name;
+
+  // Leer el siguiente nombre desde el archivo
+  if (!std::getline(input_file, name) || name == "nullptr") {
+    return nullptr; // Si es "nullptr" o no hay mas lineas retorna nullptr
+  }
+
+  // Crear un nuevo nodo Miembro con el nombre leido
+  Member *new_root = CreateMember(name);
+
+  // Llamadas recursivas para los nodos madre y padre
+  new_root->setMother(ImportTree(input_file));
+  new_root->setFather(ImportTree(input_file));
+
+  return new_root; // Retorna la raiz del subarbol construido
+}
+
+// Funcion auxiliar que es llamada por el destructor al finalizar la funcion
+// main
+void FamilyTree::FreeMemory(Member *tree) {
+  if (tree == nullptr) { // si el arbol esta vacio no hay nada que liberar
+    return;
+  }
+  // Hacemos uso de la recursividad para liberar todos los nodos del arbol
+  FreeMemory(tree->getMother());
+  tree->setMother(nullptr);
+  FreeMemory(tree->getFather());
+  tree->setFather(nullptr);
+  delete tree;
+}
+FamilyTree::~FamilyTree() { FreeMemory(this->root); }
+
+// Funcion para mostrar el menu con mejor estetica
+void MostrarMenu() {
+
+  // Titulo con formato
+  std::cout << "\n";
+  std::cout << CYAN
+            << "=====================================================" << RESET
+            << std::endl;
+  std::cout << CYAN << "              *** GESTOR DE ARBOL FAMILIAR ***        "
+            << RESET << std::endl;
+  std::cout << CYAN
+            << "=====================================================" << RESET
+            << std::endl;
+  std::cout << BLUE << BOLD << "Selecciona una opcion:" << RESET << std::endl;
+  std::cout << std::endl;
+
+  // Opciones del menu con formato
+  std::cout << GREEN << "1. " << RESET << "Ingresar un miembro a la familia."
+            << std::endl;
+  std::cout << GREEN << "2. " << RESET << "Eliminar un miembro de la familia."
+            << std::endl;
+  std::cout << GREEN << "3. " << RESET
+            << "Buscar un miembro dentro de la familia." << std::endl;
+  std::cout << GREEN << "4. " << RESET << "Mostrar el arbol familiar completo."
+            << std::endl;
+  std::cout << GREEN << "5. " << RESET
+            << "Mostrar las relaciones entre los miembros de la familia."
+            << std::endl;
+  std::cout << GREEN << "6. " << RESET << "Exportar el arbol familiar."
+            << std::endl;
+  std::cout << GREEN << "7. " << RESET << "Importar el arbol familiar."
+            << std::endl;
+  std::cout << GREEN << "8. " << RESET << "Salir." << std::endl;
+  std::cout << std::endl;
+
+  // Barra divisoria
+  std::cout << CYAN
+            << "=====================================================" << RESET
+            << std::endl;
+
+  // Solicitar la opcion
+  std::cout << BLUE << "Ingrese su opcion: " << RESET;
+}
+
+//Funcion Principal Main
+int main(int argc, char *argv[]){
+
+  return 0;
 }
